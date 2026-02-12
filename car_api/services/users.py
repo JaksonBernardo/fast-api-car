@@ -1,0 +1,48 @@
+from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from car_api.schemas.users import UserSchema
+from car_api.models import User
+from car_api.repositories.users import UserRepository
+from car_api.core.security import get_password_hash
+
+
+
+class UserService:
+
+    @staticmethod
+    async def create_user(db: AsyncSession, user: UserSchema) -> User:
+
+        username_exists = await UserRepository.verify_if_exists_username(db, user.username)
+        emails_exists = await UserRepository.verify_if_exists_email(db, user.email)
+
+        if username_exists or emails_exists:
+
+            raise HTTPException(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                detail = "Nome ou email já está em uso"
+            )
+        
+        hashed_password = get_password_hash(user.password)
+
+        new_user = User(
+            username = user.username,
+            email = user.email,
+            password = hashed_password
+        )
+
+        return await UserRepository.save(db, new_user)
+
+    @staticmethod
+    async def delete_user(db: AsyncSession, user_id: int) -> None:
+
+        user_exists = await UserRepository.verify_if_exists_id(db, user_id)
+
+        if not user_exists:
+
+            raise HTTPException(
+                status_code = status.HTTP_404_NOT_FOUND,
+                detail = "Usuário não encontrado"
+            )
+        
+        await UserRepository.delete_by_id(db, user_id)

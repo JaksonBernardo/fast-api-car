@@ -1,3 +1,4 @@
+from typing import Union
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,8 +6,7 @@ from car_api.schemas.users import UserSchema
 from car_api.models import User
 from car_api.repositories.users import UserRepository
 from car_api.core.security import get_password_hash
-
-
+from car_api.schemas.users import UserPublicSchema, UserListPublicSchema
 
 class UserService:
 
@@ -46,3 +46,28 @@ class UserService:
             )
         
         await UserRepository.delete_by_id(db, user_id)
+
+    @staticmethod
+    async def get_user_by_id(db: AsyncSession, user_id: int) -> UserPublicSchema | None:
+
+        user_exists = await UserRepository.verify_if_exists_id(db, user_id)
+
+        if not user_exists:
+
+            raise HTTPException(
+                status_code = status.HTTP_404_NOT_FOUND,
+                detail = "Usuário não encontrado"
+            )
+        
+        return await UserRepository.get_by_id(db, user_id)
+    
+    @staticmethod
+    async def list_users(db: AsyncSession, offset: int, limit: int, search: Union[str, None]) -> UserListPublicSchema:
+
+        if search:
+
+            search = f"%{search}%"
+
+        users = await UserRepository.get_users(db, offset, limit, search)
+
+        return users

@@ -1,6 +1,9 @@
+from typing import Union
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, exists, delete
+from sqlalchemy import select, exists, delete, or_
+
 from car_api.models import User
+from car_api.schemas.users import UserPublicSchema, UserListPublicSchema
 
 class UserRepository:
 
@@ -14,6 +17,35 @@ class UserRepository:
 
         return new_user
     
+    @staticmethod
+    async def get_by_id(db: AsyncSession, user_id: int) -> UserPublicSchema:
+
+        user = await db.scalar(
+            select(User).where(User.id == user_id)
+        )
+
+        return user
+
+    @staticmethod
+    async def get_users(db: AsyncSession, offset: int, limit: int, search: Union[str, None]) -> UserListPublicSchema:
+
+        query = select(User)
+
+        if search:
+
+            query = query.where(
+                or_(
+                    User.username.ilike(search),
+                    User.email.ilike(search)
+                )
+            )
+
+        query = query.offset(offset).limit(limit)
+
+        users = await db.execute(query)
+
+        return users.scalars().all()
+
     @staticmethod
     async def delete_by_id(db: AsyncSession, user_id: int) -> None:
 

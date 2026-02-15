@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Dict
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -71,3 +71,40 @@ class UserService:
         users = await UserRepository.get_users(db, offset, limit, search)
 
         return users
+    
+    @staticmethod
+    async def update_user(db: AsyncSession, user_data: Dict, user_id: int) -> UserPublicSchema:
+
+        user_exists = await UserRepository.verify_if_exists_id(db, user_id)
+
+        if not user_exists:
+
+            raise HTTPException(
+                status_code = status.HTTP_404_NOT_FOUND,
+                detail = "Usuário não encontrado"
+            )
+        
+        user = await UserRepository.get_by_id(db, user_id)
+        
+        if "email" in user_data and user_data["email"] != user.email:
+        
+            email_exists = await UserRepository.verify_if_exists_email(db, user_data["email"])
+
+            if email_exists:
+
+                raise HTTPException(
+                    status_code = status.HTTP_403_FORBIDDEN,
+                    detail = "Email indisponível"
+                )
+        
+        if "password" in user_data:
+
+            user_data["password"] = get_password_hash(user_data["password"])
+
+        for field, value in user_data.items():
+
+            setattr(user, field, value)
+
+        new_user = await UserRepository.update_user(db, user)
+
+        return new_user

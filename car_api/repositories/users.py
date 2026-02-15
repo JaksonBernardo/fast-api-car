@@ -3,7 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, exists, delete, or_
 
 from car_api.models import User
-from car_api.schemas.users import UserPublicSchema, UserListPublicSchema
+from car_api.schemas.users import (
+    UserPublicSchema,
+    UserListPublicSchema,
+    UserSchema
+)
 
 class UserRepository:
 
@@ -81,3 +85,13 @@ class UserRepository:
         )
 
         return user
+    
+    @staticmethod
+    async def update_user(db: AsyncSession, user: UserPublicSchema) -> UserPublicSchema:
+
+        await db.commit()
+        await db.refresh(user)
+
+        return user
+
+

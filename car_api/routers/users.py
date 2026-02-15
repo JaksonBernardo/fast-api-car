@@ -2,14 +2,13 @@ from typing import Optional
 from fastapi import APIRouter, status, Query, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from car_api.models import User
 from car_api.services.users import UserService
 from car_api.core.database import get_session
-from car_api.db import USERS
 from car_api.schemas.users import (
     UserSchema,
     UserListPublicSchema,
-    UserPublicSchema
+    UserPublicSchema,
+    UserUpdateSchema,
 )
 
 user_routers = APIRouter(prefix="/api/users", tags=["Users"])
@@ -114,6 +113,24 @@ async def list_users(
         "limit": limit
     }
 
+
+@user_routers.put(
+    path = "/{user_id}",
+    status_code = status.HTTP_200_OK,
+    response_model = UserPublicSchema,
+    summary="Atualizando registro de usuário"
+)
+async def update_user(
+    user_id: int,
+    user_data: UserUpdateSchema,
+    db: AsyncSession = Depends(get_session)
+):
+
+    update_data = user_data.model_dump(exclude_unset = True)
+
+    new_user = await UserService.update_user(db, update_data, user_id)
+
+    return new_user
 
 
 

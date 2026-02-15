@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 
-from car_api.routers.users import user_routers
+from car_api.routers import (
+    user_routers, 
+    brands_routes
+)
 
 app = FastAPI()
 
 app.include_router(user_routers)
+app.include_router(brands_routes)
 

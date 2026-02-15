@@ -2,16 +2,15 @@ from typing import Union, Dict
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from car_api.schemas.users import UserSchema
 from car_api.models import User
 from car_api.repositories.users import UserRepository
 from car_api.core.security import get_password_hash
-from car_api.schemas.users import UserPublicSchema, UserListPublicSchema
+from car_api.schemas.users import UserSchema, UserPublicSchema, UserListPublicSchema
 
 class UserService:
 
     @staticmethod
-    async def create_user(db: AsyncSession, user: UserSchema) -> User:
+    async def create_user(db: AsyncSession, user: UserSchema) -> UserPublicSchema:
 
         username_exists = await UserRepository.verify_if_exists_username(db, user.username)
         emails_exists = await UserRepository.verify_if_exists_email(db, user.email)

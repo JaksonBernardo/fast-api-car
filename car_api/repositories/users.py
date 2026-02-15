@@ -12,7 +12,7 @@ from car_api.schemas.users import (
 class UserRepository:
 
     @staticmethod
-    async def save(db: AsyncSession, new_user: User) -> User:
+    async def save(db: AsyncSession, new_user: UserSchema) -> UserPublicSchema:
 
         db.add(new_user)
 

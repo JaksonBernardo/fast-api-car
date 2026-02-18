@@ -110,6 +110,6 @@ class BrandService:
 
             setattr(brand, field, value)
 
-        nwe_branch = await BrandRepository.update_brand(db, brand)
+        new_branch = await BrandRepository.update_brand(db, brand)
 
-        return nwe_branch
+        return new_branch

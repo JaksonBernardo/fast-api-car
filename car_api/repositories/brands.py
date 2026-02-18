@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, exists, delete, or_
 
@@ -22,6 +22,30 @@ class BrandRepository:
 
         return new_brand
     
+    @staticmethod
+    async def get_brands(db: AsyncSession, offset: int, limit: int, search: Union[str, None], is_active: bool) -> BrandListPublicSchema:
+
+        query = select(Brand)
+
+        if search:
+
+            query = query.where(
+                or_(
+                    Brand.name.ilike(search),
+                    Brand.description.ilike(search)
+                )
+            )
+
+        if is_active is not None:
+
+            query = query.where(Brand.is_active == is_active)
+
+        query = query.offset(offset).limit(limit)
+
+        brands = await db.execute(query)
+
+        return brands.scalars().all()
+
     @staticmethod
     async def verify_if_exists_car_by_brand_id(db: AsyncSession, brand_id: int) -> bool:
 
@@ -57,4 +81,13 @@ class BrandRepository:
         )
 
         await db.commit()
+
+    @staticmethod
+    async def get_brand_by_id(db: AsyncSession, brand_id: int) -> BrandPublicSchema:
+
+        brand = await db.scalar(
+            select(Brand).where(Brand.id == brand_id)
+        )
+
+        return brand
 

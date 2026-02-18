@@ -31,8 +31,48 @@ async def create_brand(
 
     return new_brand
 
+
+@brands_routes.get(
+    path = "/",
+    status_code = status.HTTP_200_OK,
+    response_model = BrandListPublicSchema,
+    summary = "Listando brands",
+)
+async def get_brands(
+    offset: int = Query(0, ge = 0, description = "Número de registros a serem pulados"),
+    limit: int = Query(10, ge = 1, le = 10, description = "Limite de registros a serem listados"),
+    search: Optional[str] = Query(None, description = "Buscar por nome ou descrição"),
+    is_active: Optional[bool] = Query(None, description = "Filtrar por marcas ativas"),
+    db: AsyncSession = Depends(get_session)
+) -> BrandListPublicSchema:
+    
+    brands = await BrandService.get_brands(db, offset, limit, search, is_active)
+
+    return {
+        "brands": brands,
+        "offset": offset,
+        "limit": limit
+    }
+
+
+@brands_routes.get(
+    path = "/{user_id}",
+    status_code = status.HTTP_200_OK,
+    response_model = BrandPublicSchema,
+    summary = "Coletando brand por id"
+)
+async def get_brand_by_id(
+    brand_id: int,
+    db: AsyncSession = Depends(get_session)
+) -> BrandPublicSchema:
+    
+    brand = await BrandService.get_brand_by_id(db, brand_id)
+
+    return brand
+
+
 @brands_routes.delete(
-    path = "{brand_id}",
+    path = "/{brand_id}",
     status_code = status.HTTP_204_NO_CONTENT,
     summary = "Deletando uma branch"
 )

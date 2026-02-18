@@ -1,9 +1,9 @@
-from typing import Union, Dict
+from typing import Union
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from car_api.models import Brand
-from car_api.schemas.brands import BrandSchema, BrandPublicSchema
+from car_api.schemas.brands import BrandSchema, BrandPublicSchema, BrandListPublicSchema
 from car_api.repositories.brands import BrandRepository
 
 class BrandService:
@@ -53,4 +53,30 @@ class BrandService:
         
         await BrandRepository.delete_by_id(db, brand_id)
 
+    @staticmethod
+    async def get_brand_by_id(db: AsyncSession, brand_id: int) -> BrandPublicSchema:
+
+        brand_exists = await BrandRepository.verify_if_exists_brand_id(db, brand_id)
+
+        if not brand_exists:
+
+            raise HTTPException(
+                status_code = status.HTTP_404_NOT_FOUND,
+                detail = "Essa brand não existe"
+            )
         
+        brand = await BrandRepository.get_brand_by_id(db, brand_id)
+
+        return brand
+
+    @staticmethod
+    async def get_brands(db: AsyncSession, offset: int, limit: int, search: Union[str, None], is_active: bool) -> BrandListPublicSchema:
+
+        if search:
+
+            search = f"%{search}%"
+
+        brands = await BrandRepository.get_brands(db, offset, limit, search, is_active)
+
+        return brands
+

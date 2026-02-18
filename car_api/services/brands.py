@@ -29,3 +29,28 @@ class BrandService:
         new_brand = await BrandRepository.save(db, new_brand)
 
         return new_brand
+    
+    @staticmethod
+    async def delete_brand(db: AsyncSession, brand_id: int) -> None:
+
+        brand_exists = await BrandRepository.verify_if_exists_brand_id(db, brand_id)
+
+        if not brand_exists:
+
+            raise HTTPException(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                detail = "Essa brand não existe"
+            )
+        
+        cars_by_brand_id = await BrandRepository.verify_if_exists_car_by_brand_id(db, brand_id)
+
+        if cars_by_brand_id:
+
+            raise HTTPException(
+                status_code = status.HTTP_403_FORBIDDEN,
+                detail = "Essa brand tem carros associados, não pode ser deletada"
+            )
+        
+        await BrandRepository.delete_by_id(db, brand_id)
+
+        

@@ -31,3 +31,15 @@ async def create_brand(
 
     return new_brand
 
+@brands_routes.delete(
+    path = "{brand_id}",
+    status_code = status.HTTP_204_NO_CONTENT,
+    summary = "Deletando uma branch"
+)
+async def delete_brand(
+    brand_id: int,
+    db: AsyncSession = Depends(get_session)
+) -> None:
+    
+    await BrandService.delete_brand(db, brand_id)
+

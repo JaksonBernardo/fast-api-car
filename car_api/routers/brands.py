@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict
 from fastapi import APIRouter, status, Query, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +12,7 @@ from car_api.schemas.brands import (
 )
 
 brands_routes = APIRouter(prefix="/api/brands", tags=["Brands"])
+
 
 @brands_routes.post(
     path = "/",
@@ -56,7 +57,7 @@ async def get_brands(
 
 
 @brands_routes.get(
-    path = "/{user_id}",
+    path = "/{brand_id}",
     status_code = status.HTTP_200_OK,
     response_model = BrandPublicSchema,
     summary = "Coletando brand por id"
@@ -83,3 +84,21 @@ async def delete_brand(
     
     await BrandService.delete_brand(db, brand_id)
 
+
+@brands_routes.put(
+    path = "/{brand_id}",
+    status_code = status.HTTP_200_OK,
+    response_model = BrandPublicSchema,
+    summary = "Atualizando brand",
+)
+async def update_brand(
+    brand_id: int,
+    brand_data : BrandUpdateSchema,
+    db: AsyncSession = Depends(get_session)
+) -> BrandPublicSchema:
+    
+    updated_data = brand_data.model_dump(exclude_unset = True)
+
+    new_brand = await BrandService.update_brand(db, updated_data, brand_id)
+
+    return new_brand

@@ -1,9 +1,9 @@
-from typing import Union
+from typing import Union, Dict
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from car_api.models import Brand
-from car_api.schemas.brands import BrandSchema, BrandPublicSchema, BrandListPublicSchema
+from car_api.schemas.brands import BrandSchema, BrandPublicSchema, BrandListPublicSchema, BrandUpdateSchema
 from car_api.repositories.brands import BrandRepository
 
 class BrandService:
@@ -80,3 +80,36 @@ class BrandService:
 
         return brands
 
+    @staticmethod
+    async def update_brand(db: AsyncSession, brand_data: Dict, brand_id: int) -> BrandPublicSchema:
+
+        brand_exists = await BrandRepository.verify_if_exists_brand_id(db, brand_id)
+
+        if not brand_exists:
+
+            raise HTTPException(
+                status_code = status.HTTP_404_NOT_FOUND,
+                detail = "Essa brand não existe"
+            )
+        
+
+        brand = await BrandRepository.get_brand_by_id(db, brand_id)
+
+        if "name" in brand_data and brand_data["name"] != brand.name:
+
+            brand_name_exists = await BrandRepository.verify_if_exists_brand_name(db, brand_data["name"])
+
+            if brand_name_exists:
+
+                raise HTTPException(
+                    status_code = status.HTTP_403_FORBIDDEN,
+                    detail = "Nome da marca já existente"
+                )
+            
+        for field, value in brand_data.items():
+
+            setattr(brand, field, value)
+
+        nwe_branch = await BrandRepository.update_brand(db, brand)
+
+        return nwe_branch

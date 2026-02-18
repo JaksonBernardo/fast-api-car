@@ -91,3 +91,10 @@ class BrandRepository:
 
         return brand
 
+    @staticmethod
+    async def update_brand(db: AsyncSession, brand: BrandPublicSchema) -> BrandPublicSchema:
+
+        await db.commit()
+        await db.refresh(brand)
+
+        return brand

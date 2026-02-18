@@ -67,6 +67,28 @@ async def get_user_by_id(
         )
 
 
+@user_routers.get(
+    path = "/",
+    status_code = status.HTTP_200_OK,
+    response_model = UserListPublicSchema,
+    summary = "Listando usuários"
+)
+async def list_users(
+    offset: int = Query(0, ge = 0, description = "Número de registros a serem pulados"),
+    limit: int = Query(100, ge = 1, le = 100, description = "Limite de registros a serem listados"),
+    search: Optional[str] = Query(None, description = "Buscar por username ou email"),
+    db: AsyncSession = Depends(get_session)
+) -> UserListPublicSchema:
+    
+    users = await UserService.list_users(db, offset, limit, search)
+
+    return {
+        "users": users,
+        "offset": offset,
+        "limit": limit
+    }
+
+
 @user_routers.delete(
     path = "/{user_id}",
     status_code = status.HTTP_204_NO_CONTENT,
@@ -92,28 +114,6 @@ async def delete_user(
         )
 
 
-@user_routers.get(
-    path = "/",
-    status_code = status.HTTP_200_OK,
-    response_model = UserListPublicSchema,
-    summary = "Listando usuários"
-)
-async def list_users(
-    offset: int = Query(0, ge = 0, description = "Número de registros a serem pulados"),
-    limit: int = Query(100, ge = 1, le = 100, description = "Limite de registros a serem listados"),
-    search: Optional[str] = Query(None, description = "Buscar por username ou email"),
-    db: AsyncSession = Depends(get_session)
-) -> UserListPublicSchema:
-    
-    users = await UserService.list_users(db, offset, limit, search)
-
-    return {
-        "users": users,
-        "offset": offset,
-        "limit": limit
-    }
-
-
 @user_routers.put(
     path = "/{user_id}",
     status_code = status.HTTP_200_OK,
@@ -124,7 +124,7 @@ async def update_user(
     user_id: int,
     user_data: UserUpdateSchema,
     db: AsyncSession = Depends(get_session)
-):
+) -> UserPublicSchema:
 
     update_data = user_data.model_dump(exclude_unset = True)
 

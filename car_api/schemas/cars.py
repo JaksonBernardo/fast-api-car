@@ -1,4 +1,4 @@
-from typing import Optional, List,  Literal
+from typing import Optional, List
 from decimal import Decimal
 from pydantic import BaseModel, field_validator, ConfigDict
 from datetime import datetime
@@ -21,6 +21,53 @@ class CarSchema(BaseModel):
     is_available: bool = True
     brand_id: int
     owner_id: int
+
+    @field_validator('model')
+    def model_min_length(cls, v: str):
+
+        if len(v.strip()) < 2:
+
+            raise ValueError("O modelo do carro deve ter pelo menos 2 caracteres")
+        
+        return v.strip()
+    
+    @field_validator('color')
+    def color_min_length(cls, v: str):
+
+        if len(v.strip()) < 2:
+
+            raise ValueError("A cor do carro deve ter pelo menos 2 caracteres")
+        
+        return v.strip()
+    
+    @field_validator('plate')
+    def plate_max_min_length(cls, v: str):
+
+        PLATE = v.strip().upper()
+
+        if len(PLATE) < 7 or len(PLATE) > 10:
+
+            raise ValueError("A placa do carro deve ter de 7 a 10 caracteres")
+        
+        return PLATE
+    
+    @field_validator('factory_year', 'model_year')
+    def year_validation(cls, v):
+
+        if v < 1900 or v > 2030:
+
+            raise ValueError("Ano deve estar entre 1900 e 2030")
+        
+        return v
+    
+    @field_validator('price')
+    def price_value(cls, v):
+
+        if v <= 0:
+
+            raise ValueError("O valor do veículo deve ser maior que zero")
+        
+        return v
 
 
 class CarUpdateSchema(BaseModel):

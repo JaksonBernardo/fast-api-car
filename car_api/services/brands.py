@@ -3,13 +3,18 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from car_api.models import Brand
-from car_api.schemas.brands import BrandSchema, BrandPublicSchema, BrandListPublicSchema, BrandUpdateSchema
 from car_api.repositories.brands import BrandRepository
+from car_api.schemas.brands import (
+    BrandSchema, 
+    BrandPublicSchema, 
+    BrandListPublicSchema, 
+    BrandUpdateSchema
+)
 
 class BrandService:
 
     @staticmethod
-    async def create_brand(db: AsyncSession, brand: Brand) -> BrandPublicSchema:
+    async def create_brand(db: AsyncSession, brand: BrandSchema) -> BrandPublicSchema:
 
         brand_exists = await BrandRepository.verify_if_exists_brand_name(db, brand.name)
 

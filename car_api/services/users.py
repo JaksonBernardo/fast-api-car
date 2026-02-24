@@ -58,7 +58,7 @@ class UserService:
                 detail = "Usuário não encontrado"
             )
         
-        return await UserRepository.get_by_id(db, user_id)
+        return await UserRepository.get_user_by_id(db, user_id)
     
     @staticmethod
     async def list_users(db: AsyncSession, offset: int, limit: int, search: Union[str, None]) -> UserListPublicSchema:
@@ -83,7 +83,7 @@ class UserService:
                 detail = "Usuário não encontrado"
             )
         
-        user = await UserRepository.get_by_id(db, user_id)
+        user = await UserRepository.get_user_by_id(db, user_id)
         
         if "email" in user_data and user_data["email"] != user.email:
         

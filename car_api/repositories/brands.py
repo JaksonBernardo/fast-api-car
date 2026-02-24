@@ -1,11 +1,9 @@
-from typing import List, Union
+from typing import Union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, exists, delete, or_
 
 from car_api.models import Brand, Car
 from car_api.schemas.brands import (
-    BrandSchema,
-    BrandUpdateSchema,
     BrandPublicSchema,
     BrandListPublicSchema
 )

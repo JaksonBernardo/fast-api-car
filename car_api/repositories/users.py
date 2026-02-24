@@ -22,7 +22,7 @@ class UserRepository:
         return new_user
     
     @staticmethod
-    async def get_by_id(db: AsyncSession, user_id: int) -> UserPublicSchema:
+    async def get_user_by_id(db: AsyncSession, user_id: int) -> UserPublicSchema:
 
         user = await db.scalar(
             select(User).where(User.id == user_id)

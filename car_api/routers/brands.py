@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Optional
 from fastapi import APIRouter, status, Query, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 

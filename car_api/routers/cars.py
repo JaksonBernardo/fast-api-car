@@ -3,6 +3,7 @@ from fastapi import APIRouter, status, Query, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from car_api.services.cars import CarServices
+from car_api.models import FuelType, TransmissionType
 from car_api.core.database import get_session
 from car_api.schemas.cars import (
     CarSchema,
@@ -41,6 +42,10 @@ async def get_cars(
     offset: int = Query(0, ge = 0, description = "Número de registros a serem pulados"),
     limit: int = Query(100, ge = 1, le = 100, description = "Limite de registros a serem listados"),
     search: Optional[str] = Query(None, description = "Buscar por nome ou placa"),
+    brand_id: Optional[int] = Query(None, description = "Buscar por uma marca específica"),
+    owner_id: Optional[int] = Query(None, description = "Buscar por um proprietário específico"),
+    fuel_type: Optional[FuelType] = Query(None, description = "Buscar por um tipo de combustível"),
+    transmission: Optional[TransmissionType] = Query(None, description = "Buscar por um tipo de transmissão"),
     db: AsyncSession = Depends(get_session)
 ) -> CarListPublicSchema:
     
@@ -48,7 +53,11 @@ async def get_cars(
         db,
         offset,
         limit,
-        search
+        search,
+        brand_id,
+        owner_id,
+        fuel_type,
+        transmission
     )
 
     return {
@@ -86,4 +95,18 @@ async def delete_car(
     
     await CarServices.delete_car(db, car_id)
 
+
+@car_routes.put(
+    path = "{car_id}",
+    status_code = status.HTTP_200_OK,
+    response_model = CarPublicSchema,
+    summary = "Atualizando um registro de carro"
+)
+async def update_car(
+    car_id: int,
+    car_data: CarUpdateSchema,
+    db: AsyncSession = Depends(get_session)
+) -> CarPublicSchema:
+    
+    ...
 

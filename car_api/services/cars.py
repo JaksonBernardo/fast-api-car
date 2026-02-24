@@ -1,8 +1,8 @@
-from typing import Union, List
+from typing import Union, List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from car_api.models import Car
+from car_api.models import Car, FuelType, TransmissionType
 from car_api.repositories.cars import CarRepository
 from car_api.repositories.brands import BrandRepository
 from car_api.repositories.users import UserRepository
@@ -109,12 +109,21 @@ class CarServices:
         return car
 
     @staticmethod
-    async def get_cars(db: AsyncSession, offset: int, limit: int, search: Union[str, None]) -> List[CarPublicSchema]:
+    async def get_cars(
+        db: AsyncSession, 
+        offset: int, 
+        limit: int, 
+        search: Union[str, None], 
+        brand_id: Union[int, None], 
+        owner_id: Union[int, None],
+        fuel_type: Union[FuelType, None],
+        transmission: Union[TransmissionType, None]
+    ) -> List[CarPublicSchema]:
 
         if search:
 
             search = f"%{search}%"
 
-        cars = await CarRepository.get_cars(db, offset, limit, search)
+        cars = await CarRepository.get_cars(db, offset, limit, search, brand_id, owner_id, fuel_type, transmission)
 
         return cars

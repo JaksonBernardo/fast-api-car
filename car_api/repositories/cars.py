@@ -1,9 +1,9 @@
-from typing import List, Union
+from typing import Optional, Union, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, exists, delete, or_
 from sqlalchemy.orm import selectinload
 
-from car_api.models import Car
+from car_api.models import Car, FuelType, TransmissionType
 from car_api.schemas.cars import (
     CarSchema,
     CarUpdateSchema,
@@ -23,7 +23,16 @@ class CarRepository:
         return new_car
     
     @staticmethod
-    async def get_cars(db: AsyncSession, offset: int, limit: int, search: Union[str, None]) -> List[Car]:
+    async def get_cars(
+        db: AsyncSession, 
+        offset: int, 
+        limit: int, 
+        search: Union[str, None], 
+        brand_id: Union[int, None], 
+        owner_id: Union[int, None],
+        fuel_type: Union[FuelType, None],
+        transmission: Union[TransmissionType, None]
+    ) -> List[CarPublicSchema]:
 
         query = select(Car).options(selectinload(Car.brand), selectinload(Car.owner))
 
@@ -34,6 +43,30 @@ class CarRepository:
                     Car.model.ilike(search),
                     Car.plate.ilike(search)
                 )
+            )
+
+        if brand_id:
+
+            query = query.where(
+                Car.brand_id == brand_id
+            )
+
+        if owner_id:
+
+            query = query.where(
+                Car.owner_id == owner_id
+            )
+
+        if fuel_type:
+
+            query = query.where(
+                Car.fuel_type == fuel_type
+            )
+
+        if transmission:
+
+            query = query.where(
+                Car.transmission == transmission
             )
 
         query = query.offset(offset).limit(limit)

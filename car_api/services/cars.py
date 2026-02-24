@@ -1,4 +1,4 @@
-from typing import Union, Dict
+from typing import Union, List
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -108,5 +108,13 @@ class CarServices:
 
         return car
 
+    @staticmethod
+    async def get_cars(db: AsyncSession, offset: int, limit: int, search: Union[str, None]) -> List[CarPublicSchema]:
 
+        if search:
 
+            search = f"%{search}%"
+
+        cars = await CarRepository.get_cars(db, offset, limit, search)
+
+        return cars

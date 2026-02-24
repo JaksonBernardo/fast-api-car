@@ -23,6 +23,26 @@ class CarRepository:
         return new_car
     
     @staticmethod
+    async def get_cars(db: AsyncSession, offset: int, limit: int, search: Union[str, None]) -> List[Car]:
+
+        query = select(Car).options(selectinload(Car.brand), selectinload(Car.owner))
+
+        if search:
+
+            query = query.where(
+                or_(
+                    Car.model.ilike(search),
+                    Car.plate.ilike(search)
+                )
+            )
+
+        query = query.offset(offset).limit(limit)
+
+        cars = await db.execute(query)
+
+        return cars.scalars().all()
+
+    @staticmethod
     async def verify_if_plate_exists(db: AsyncSession, plate: str) -> bool:
 
         plate_exists = await db.scalar(

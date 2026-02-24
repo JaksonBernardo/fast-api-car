@@ -32,6 +32,33 @@ async def create_cars(
 
 
 @car_routes.get(
+    path = "/",
+    status_code = status.HTTP_200_OK,
+    response_model = CarListPublicSchema,
+    summary = "Listando carros"
+)
+async def get_cars(
+    offset: int = Query(0, ge = 0, description = "Número de registros a serem pulados"),
+    limit: int = Query(100, ge = 1, le = 100, description = "Limite de registros a serem listados"),
+    search: Optional[str] = Query(None, description = "Buscar por nome ou placa"),
+    db: AsyncSession = Depends(get_session)
+) -> CarListPublicSchema:
+    
+    cars = await CarServices.get_cars(
+        db,
+        offset,
+        limit,
+        search
+    )
+
+    return {
+        "cars": cars,
+        "offset": offset,
+        "limit": limit
+    }
+
+
+@car_routes.get(
     path = "/{car_id}",
     status_code = status.HTTP_200_OK,
     response_model = CarPublicSchema,

@@ -107,7 +107,7 @@ class BrandService:
             if brand_name_exists:
 
                 raise HTTPException(
-                    status_code = status.HTTP_403_FORBIDDEN,
+                    status_code = status.HTTP_409_CONFLICT,
                     detail = "Nome da marca já existente"
                 )
             
@@ -115,6 +115,7 @@ class BrandService:
 
             setattr(brand, field, value)
 
-        new_branch = await BrandRepository.update_brand(db, brand)
+        new_brand = await BrandRepository.update_brand(db, brand)
 
-        return new_branch
+        return new_brand
+    

@@ -111,5 +111,17 @@ class CarRepository:
 
         return car
 
+    @staticmethod
+    async def update_car(db: AsyncSession, car: Car) -> Car:
 
+        await db.commit()
+        await db.refresh(car)
+
+        car = await db.scalar(
+            select(Car)
+            .options(selectinload(Car.brand), selectinload(Car.owner))
+            .where(Car.id == car.id)
+        )
+
+        return car
 

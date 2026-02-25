@@ -108,5 +108,9 @@ async def update_car(
     db: AsyncSession = Depends(get_session)
 ) -> CarPublicSchema:
     
-    ...
+    car_data = car_data.model_dump(exclude_unset = True)
+
+    car = await CarServices.update_car(db, car_data , car_id)
+
+    return car
 

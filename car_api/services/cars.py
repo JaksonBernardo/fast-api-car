@@ -1,4 +1,4 @@
-from typing import Union, List, Optional
+from typing import Union, List, Dict
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -127,3 +127,40 @@ class CarServices:
         cars = await CarRepository.get_cars(db, offset, limit, search, brand_id, owner_id, fuel_type, transmission)
 
         return cars
+    
+    @staticmethod
+    async def update_car(db: AsyncSession, car_data: Dict, car_id: int) -> CarPublicSchema:
+
+        car_exists = await CarRepository.verify_if_exists_by_id(db, car_id)
+
+        if not car_exists:
+
+            raise HTTPException(
+                status_code = status.HTTP_404_NOT_FOUND,
+                detail = "Carro não encontrado"
+            )
+        
+        car = await CarRepository.get_car_by_id(db, car_id)
+
+        if "plate" in car_data and car_data["plate"] != car.plate:
+
+            plate_exists = await CarRepository.verify_if_plate_exists(db, car_data["plate"])
+
+            if plate_exists:
+
+                raise HTTPException(
+                    status_code = status.HTTP_409_CONFLICT,
+                    detail = "Placa do veículo já existente"
+                )
+
+        for field, value in car_data.items():
+
+            setattr(car, field, value)
+
+        new_car = await CarRepository.update_car(db, car)
+
+        return new_car
+
+
+
+

@@ -152,6 +152,42 @@ class CarServices:
                     status_code = status.HTTP_409_CONFLICT,
                     detail = "Placa do veículo já existente"
                 )
+            
+        if "price" in car_data and car_data["price"] <= 0:
+
+            raise HTTPException(
+                status_code = status.HTTP_409_CONFLICT,
+                detail = "Preço do veículo tem que ser maior que zero"
+            )
+        
+        if "model" in car_data and not car_data["model"]:
+
+            raise HTTPException(
+                status_code = status.HTTP_409_CONFLICT,
+                detail = "Modelo do veículo inválido"
+            )
+        
+        if "brand_id" in car_data:
+
+            brand_exists = await BrandRepository.verify_if_exists_brand_id(db, car_data["brand_id"])
+
+            if not brand_exists:
+
+                raise HTTPException(
+                    status_code = status.HTTP_409_CONFLICT,
+                    detail = "Marca/Brand não encontrada"
+                )
+            
+        if "owner_id" in car_data:
+        
+            owner_exists = await UserRepository.verify_if_exists_id(db, car_data["owner_id"])
+
+            if not owner_exists:
+
+                raise HTTPException(
+                    status_code = status.HTTP_409_CONFLICT,
+                    detail = "Proprietário do veículo não encontrado"
+                )
 
         for field, value in car_data.items():
 

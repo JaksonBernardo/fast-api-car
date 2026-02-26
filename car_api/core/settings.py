@@ -13,3 +13,7 @@ class Settings(BaseSettings):
     DB_PORT: int
     DB_NAME: str
     DATABASE_URL: str
+
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str
+    JWT_EXPIRATION_MINUTES: int

@@ -1,6 +1,8 @@
-from typing import Optional, List
-from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+
 
 class UserSchema(BaseModel):
     username: str
@@ -11,19 +13,18 @@ class UserSchema(BaseModel):
     def username_min_length(cls, v):
 
         if len(v) < 3:
-
             raise ValueError("Username deve ter pelo menos 6 caracteres")
-        
+
         return v
-    
+
     @field_validator("password")
     def password_min_length(cls, v):
 
         if len(v) < 6:
-
             raise ValueError("Password deve ter pelo menos 6 caracteres")
-        
+
         return v
+
 
 class UserUpdateSchema(BaseModel):
     username: Optional[str] = None
@@ -34,23 +35,21 @@ class UserUpdateSchema(BaseModel):
     def username_min_length(cls, v):
 
         if len(v.strip()) < 3:
-
             raise ValueError("Username deve ter pelo menos 6 caracteres")
-        
+
         return v
-    
+
     @field_validator("password")
     def password_min_length(cls, v):
 
         if len(v.strip()) < 6:
-
             raise ValueError("Password deve ter pelo menos 6 caracteres")
-        
+
         return v
 
 
 class UserPublicSchema(BaseModel):
-    model_config = ConfigDict(from_attributes = True)
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     username: str
@@ -58,9 +57,8 @@ class UserPublicSchema(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-class UserListPublicSchema(BaseModel):
 
+class UserListPublicSchema(BaseModel):
     users: List[UserPublicSchema]
     offset: int
     limit: int
-

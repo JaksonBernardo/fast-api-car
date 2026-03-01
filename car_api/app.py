@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 
 from car_api.routers import (
-    user_routers, 
+    auth_routers,
     brands_routers,
     car_routers,
-    auth_routers
+    user_routers,
 )
 
 app = FastAPI()

@@ -1,16 +1,17 @@
 from typing import Union
+
+from sqlalchemy import delete, exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, exists, delete, or_
 
 from car_api.models import User
 from car_api.schemas.users import (
-    UserPublicSchema,
     UserListPublicSchema,
-    UserSchema
+    UserPublicSchema,
+    UserSchema,
 )
 
-class UserRepository:
 
+class UserRepository:
     @staticmethod
     async def save(db: AsyncSession, new_user: UserSchema) -> UserPublicSchema:
 
@@ -20,28 +21,24 @@ class UserRepository:
         await db.refresh(new_user)
 
         return new_user
-    
+
     @staticmethod
     async def get_user_by_id(db: AsyncSession, user_id: int) -> UserPublicSchema:
 
-        user = await db.scalar(
-            select(User).where(User.id == user_id)
-        )
+        user = await db.scalar(select(User).where(User.id == user_id))
 
         return user
 
     @staticmethod
-    async def get_users(db: AsyncSession, offset: int, limit: int, search: Union[str, None]) -> UserListPublicSchema:
+    async def get_users(
+        db: AsyncSession, offset: int, limit: int, search: Union[str, None]
+    ) -> UserListPublicSchema:
 
         query = select(User)
 
         if search:
-
             query = query.where(
-                or_(
-                    User.username.ilike(search),
-                    User.email.ilike(search)
-                )
+                or_(User.username.ilike(search), User.email.ilike(search))
             )
 
         query = query.offset(offset).limit(limit)
@@ -53,39 +50,31 @@ class UserRepository:
     @staticmethod
     async def delete_by_id(db: AsyncSession, user_id: int) -> None:
 
-        await db.execute(
-            delete(User).where(User.id == user_id)
-        )
+        await db.execute(delete(User).where(User.id == user_id))
 
         await db.commit()
-    
+
     @staticmethod
     async def verify_if_exists_username(db: AsyncSession, username: str) -> bool:
 
-        user = await db.scalar(
-            select(exists().where(User.username == username))
-        )
+        user = await db.scalar(select(exists().where(User.username == username)))
 
         return user
-    
+
     @staticmethod
     async def verify_if_exists_email(db: AsyncSession, email: str) -> bool:
 
-        user = await db.scalar(
-            select(exists().where(User.email == email))
-        )
+        user = await db.scalar(select(exists().where(User.email == email)))
 
         return user
-    
+
     @staticmethod
     async def verify_if_exists_id(db: AsyncSession, user_id: int) -> bool:
 
-        user = await db.scalar(
-            select(exists().where(User.id == user_id))
-        )
+        user = await db.scalar(select(exists().where(User.id == user_id)))
 
         return user
-    
+
     @staticmethod
     async def update_user(db: AsyncSession, user: UserPublicSchema) -> UserPublicSchema:
 
@@ -93,4 +82,3 @@ class UserRepository:
         await db.refresh(user)
 
         return user
-

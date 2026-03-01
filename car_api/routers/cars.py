@@ -2,9 +2,14 @@ from typing import Optional
 from fastapi import APIRouter, status, Query, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from car_api.models import User
 from car_api.services.cars import CarServices
 from car_api.models import FuelType, TransmissionType
 from car_api.core.database import get_session
+from car_api.core.security import (
+    get_current_user,
+    verify_car_ownership
+)
 from car_api.schemas.cars import (
     CarSchema,
     CarUpdateSchema,
@@ -13,10 +18,10 @@ from car_api.schemas.cars import (
 )
 
 
-car_routes = APIRouter(prefix="/api/cars", tags=["Cars"])
+car_routers = APIRouter(prefix="/api/cars", tags=["Cars"])
 
 
-@car_routes.post(
+@car_routers.post(
     path = "/",
     status_code = status.HTTP_201_CREATED,
     response_model = CarPublicSchema,
@@ -24,6 +29,7 @@ car_routes = APIRouter(prefix="/api/cars", tags=["Cars"])
 )
 async def create_cars(
     car_data: CarSchema,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ) -> CarPublicSchema:
     
@@ -32,7 +38,7 @@ async def create_cars(
     return new_car
 
 
-@car_routes.get(
+@car_routers.get(
     path = "/",
     status_code = status.HTTP_200_OK,
     response_model = CarListPublicSchema,
@@ -67,7 +73,7 @@ async def get_cars(
     }
 
 
-@car_routes.get(
+@car_routers.get(
     path = "/{car_id}",
     status_code = status.HTTP_200_OK,
     response_model = CarPublicSchema,
@@ -75,28 +81,30 @@ async def get_cars(
 )
 async def get_car_by_id(
     car_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ) -> CarPublicSchema:
     
-    car = await CarServices.get_car_by_id(db, car_id)
+    car = await CarServices.get_car_by_id(db, car_id, current_user, verify_car_ownership)
 
     return car
 
 
-@car_routes.delete(
+@car_routers.delete(
     path = "/{car_id}",
     status_code = status.HTTP_204_NO_CONTENT,
     summary = "Deletando um carro"
 )
 async def delete_car(
     car_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ) -> None:
     
     await CarServices.delete_car(db, car_id)
 
 
-@car_routes.put(
+@car_routers.put(
     path = "{car_id}",
     status_code = status.HTTP_200_OK,
     response_model = CarPublicSchema,
@@ -105,12 +113,13 @@ async def delete_car(
 async def update_car(
     car_id: int,
     car_data: CarUpdateSchema,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ) -> CarPublicSchema:
     
     car_data = car_data.model_dump(exclude_unset = True)
 
-    car = await CarServices.update_car(db, car_data , car_id)
+    car = await CarServices.update_car(db, car_data , car_id, current_user, verify_car_ownership)
 
     return car
 

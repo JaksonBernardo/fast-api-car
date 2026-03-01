@@ -1,4 +1,4 @@
-from typing import Union, Dict
+from typing import Union, Dict, Callable
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,7 +33,7 @@ class UserService:
         return await UserRepository.save(db, new_user)
 
     @staticmethod
-    async def delete_user(db: AsyncSession, user_id: int) -> None:
+    async def delete_user(db: AsyncSession, user_id: int, current_user: User, verify_user_permission: Callable) -> None:
 
         user_exists = await UserRepository.verify_if_exists_id(db, user_id)
 
@@ -43,6 +43,8 @@ class UserService:
                 status_code = status.HTTP_404_NOT_FOUND,
                 detail = "Usuário não encontrado"
             )
+        
+        verify_user_permission(current_user, user_id)
         
         await UserRepository.delete_by_id(db, user_id)
 
@@ -72,7 +74,7 @@ class UserService:
         return users
     
     @staticmethod
-    async def update_user(db: AsyncSession, user_data: Dict, user_id: int) -> UserPublicSchema:
+    async def update_user(db: AsyncSession, user_data: Dict, user_id: int, current_user: User, verify_user_permission: Callable) -> UserPublicSchema:
 
         user_exists = await UserRepository.verify_if_exists_id(db, user_id)
 
@@ -84,6 +86,8 @@ class UserService:
             )
         
         user = await UserRepository.get_user_by_id(db, user_id)
+
+        verify_user_permission(current_user, user_id)
         
         if "email" in user_data and user_data["email"] != user.email:
         

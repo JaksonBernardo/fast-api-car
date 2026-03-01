@@ -1,8 +1,8 @@
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Callable
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from car_api.models import Car, FuelType, TransmissionType
+from car_api.models import Car, FuelType, TransmissionType, User
 from car_api.repositories.cars import CarRepository
 from car_api.repositories.brands import BrandRepository
 from car_api.repositories.users import UserRepository
@@ -72,21 +72,23 @@ class CarServices:
         return new_car
 
     @staticmethod
-    async def delete_car(db: AsyncSession, car_id: int) -> None:
+    async def delete_car(db: AsyncSession, car_id: int, current_user: User, verify_car_ownership: Callable) -> None:
 
-        car_exists = await CarRepository.verify_if_exists_by_id(db, car_id)
+        car = await CarRepository.get_car_by_id(db, car_id)
 
-        if not car_exists:
+        if not car:
 
             raise HTTPException(
                 status_code = status.HTTP_404_NOT_FOUND,
                 detail = "Carro não encontrado"
             )
+        
+        verify_car_ownership(current_user, car.owner_id)
 
         await CarRepository.delete_car(db, car_id)
 
     @staticmethod
-    async def get_car_by_id(db: AsyncSession, car_id: int) -> CarPublicSchema:
+    async def get_car_by_id(db: AsyncSession, car_id: int,  current_user: User, verify_car_ownership: Callable) -> CarPublicSchema:
 
         car_exists = await CarRepository.verify_if_exists_by_id(db, car_id)
 
@@ -105,6 +107,8 @@ class CarServices:
 
         car.brand = brand_infos
         car.owner = owner_infos
+
+        verify_car_ownership(current_user, car.owner_id)
 
         return car
 
@@ -129,7 +133,7 @@ class CarServices:
         return cars
     
     @staticmethod
-    async def update_car(db: AsyncSession, car_data: Dict, car_id: int) -> CarPublicSchema:
+    async def update_car(db: AsyncSession, car_data: Dict, car_id: int, current_user: User, verify_car_ownership: Callable) -> CarPublicSchema:
 
         car_exists = await CarRepository.verify_if_exists_by_id(db, car_id)
 
@@ -141,6 +145,8 @@ class CarServices:
             )
         
         car = await CarRepository.get_car_by_id(db, car_id)
+
+        verify_car_ownership(current_user, car.owner_id)
 
         if "plate" in car_data and car_data["plate"] != car.plate:
 

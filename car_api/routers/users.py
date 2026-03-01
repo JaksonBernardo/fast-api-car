@@ -2,8 +2,13 @@ from typing import Optional
 from fastapi import APIRouter, status, Query, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from car_api.models import User
 from car_api.services.users import UserService
 from car_api.core.database import get_session
+from car_api.core.security import (
+    get_current_user,
+    verify_user_permission
+)
 from car_api.schemas.users import (
     UserSchema,
     UserListPublicSchema,
@@ -96,11 +101,12 @@ async def list_users(
 )
 async def delete_user(
     user_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ):
     try:
 
-        await UserService.delete_user(db, user_id)
+        await UserService.delete_user(db, user_id, current_user, verify_user_permission)
 
     except HTTPException as http_ex:
 
@@ -123,12 +129,13 @@ async def delete_user(
 async def update_user(
     user_id: int,
     user_data: UserUpdateSchema,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ) -> UserPublicSchema:
 
     update_data = user_data.model_dump(exclude_unset = True)
 
-    new_user = await UserService.update_user(db, update_data, user_id)
+    new_user = await UserService.update_user(db, update_data, user_id, current_user, verify_user_permission)
 
     return new_user
 

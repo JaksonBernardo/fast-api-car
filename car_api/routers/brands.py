@@ -2,8 +2,13 @@ from typing import Optional
 from fastapi import APIRouter, status, Query, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from car_api.models import User
 from car_api.services.brands import BrandService
 from car_api.core.database import get_session
+from car_api.core.security import (
+    get_current_user,
+    get_password_hash
+)
 from car_api.schemas.brands import (
     BrandSchema,
     BrandUpdateSchema,
@@ -11,10 +16,10 @@ from car_api.schemas.brands import (
     BrandListPublicSchema
 )
 
-brands_routes = APIRouter(prefix="/api/brands", tags=["Brands"])
+brands_routers = APIRouter(prefix="/api/brands", tags=["Brands"])
 
 
-@brands_routes.post(
+@brands_routers.post(
     path = "/",
     status_code = status.HTTP_201_CREATED,
     response_model = BrandPublicSchema,
@@ -22,6 +27,7 @@ brands_routes = APIRouter(prefix="/api/brands", tags=["Brands"])
 )
 async def create_brand(
     brand: BrandSchema,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ) -> BrandPublicSchema:
     
@@ -33,7 +39,7 @@ async def create_brand(
     return new_brand
 
 
-@brands_routes.get(
+@brands_routers.get(
     path = "/",
     status_code = status.HTTP_200_OK,
     response_model = BrandListPublicSchema,
@@ -44,6 +50,7 @@ async def get_brands(
     limit: int = Query(10, ge = 1, le = 10, description = "Limite de registros a serem listados"),
     search: Optional[str] = Query(None, description = "Buscar por nome ou descrição"),
     is_active: Optional[bool] = Query(None, description = "Filtrar por marcas ativas"),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ) -> BrandListPublicSchema:
     
@@ -56,7 +63,7 @@ async def get_brands(
     }
 
 
-@brands_routes.get(
+@brands_routers.get(
     path = "/{brand_id}",
     status_code = status.HTTP_200_OK,
     response_model = BrandPublicSchema,
@@ -64,6 +71,7 @@ async def get_brands(
 )
 async def get_brand_by_id(
     brand_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ) -> BrandPublicSchema:
     
@@ -72,20 +80,21 @@ async def get_brand_by_id(
     return brand
 
 
-@brands_routes.delete(
+@brands_routers.delete(
     path = "/{brand_id}",
     status_code = status.HTTP_204_NO_CONTENT,
     summary = "Deletando uma branch"
 )
 async def delete_brand(
     brand_id: int,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ) -> None:
     
     await BrandService.delete_brand(db, brand_id)
 
 
-@brands_routes.put(
+@brands_routers.put(
     path = "/{brand_id}",
     status_code = status.HTTP_200_OK,
     response_model = BrandPublicSchema,
@@ -94,6 +103,7 @@ async def delete_brand(
 async def update_brand(
     brand_id: int,
     brand_data : BrandUpdateSchema,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session)
 ) -> BrandPublicSchema:
     

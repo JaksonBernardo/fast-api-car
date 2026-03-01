@@ -131,6 +131,14 @@ async def get_current_user(
     
     return user
 
+def verify_user_permission(current_user: User, user_id: int) -> None:
+
+    if current_user.id != user_id:
+
+        raise HTTPException(
+            status_code = status.HTTP_403_FORBIDDEN,
+            detail = "Você não tem permissão para alterar esse usuário"
+        )
 
 def verify_car_ownership(user: User, car_owner_id: int) -> None:
 

@@ -1,0 +1,96 @@
+site_name: CAR API
+site_description: API REST assíncrona para gerenciamento de carros e usuários
+site_author: Jakson
+
+repo_name: car-api
+repo_url: https://github.com/JaksonBernardo/fast-api-car.git
+
+copyright: Copyright © 2026 Jakson
+
+theme:
+  name: material
+  language: pt-BR
+
+  palette:
+    - scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Modo escuro
+
+    - scheme: slate
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Modo claro
+
+  font:
+    text: Lato
+    code: Fira Code
+
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.instant
+    - navigation.tracking
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.action.edit
+    - toc.follow
+
+nav:
+  - Início: index.md
+  - Visão geral: overview.md
+  - Pré-requisitos: prerequisites.md
+  - Instalação: installation.md
+  - Configuração: configuration.md
+  - Guidelines e padrões: guidelines.md
+  - Estrutura: structure.md
+  - API Endpoints: api-endpoints.md
+  - Modelagem do Sistema: system-modeling.md
+  - Autenticação e Segurança: authentication.md
+  - Desenvolvimento: development.md
+  - Testes: testing.md
+  - Deploy: deployment.md
+  - Contribuição: contributing.md
+  - Release Notes: release-notes.md
+
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/JaksonBernardo
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/jakson-bernardo

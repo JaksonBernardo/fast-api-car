@@ -31,7 +31,7 @@ gh repo fork JaksonBernardo/fast-api-car
 ### 2. Clone Seu Fork
 
 ```bash
-git clone https://github.com/SEU_USUARIO/fast-api-car.git
+git clone https://github.com/JaksonBernardo/fast-api-car.git
 cd fast-api-car
 ```
 

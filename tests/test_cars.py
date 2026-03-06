@@ -55,7 +55,7 @@ class TestCreateCar:
             'plate': car.plate,  # Same plate
             'fuel_type': FuelType.DIESEL.value,
             'transmission': TransmissionType.MANUAL.value,
-            'price': Decimal('60000.00'),
+            'price': 60000.00,
             'description': 'Duplicate plate test',
             'is_available': True,
             'brand_id': car.brand_id,
@@ -163,7 +163,7 @@ class TestCreateCar:
             **car_data,
             'brand_id': brand.id,
             'owner_id': user.id,
-            'price': Decimal('0.00')
+            'price': 0.00
         }
 
         response = client.post('/api/cars/', json=invalid_car, headers=auth_headers)
@@ -176,14 +176,14 @@ class TestCreateCar:
             **car_data,
             'brand_id': brand.id,
             'owner_id': user.id,
-            'price': Decimal('-100.00')
+            'price': -100.00
         }
 
         response = client.post('/api/cars/', json=invalid_car, headers=auth_headers)
 
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
-    def test_create_car_without_description(self, client: TestClient, auth_headers: dict, car_data: dict, brand: Brand, user: User):
+    def test_create_car_without_description(self, client: TestClient, auth_headers: dict, brand: Brand, user: User):
         """Test creating a car without description succeeds (optional field)."""
         car_without_desc = {
             'model': 'No Description Car',
@@ -193,7 +193,7 @@ class TestCreateCar:
             'plate': 'NODESC1',
             'fuel_type': FuelType.GASOLINE.value,
             'transmission': TransmissionType.MANUAL.value,
-            'price': Decimal('50000.00'),
+            'price': 50000.00,
             'is_available': True,
             'brand_id': brand.id,
             'owner_id': user.id
@@ -392,7 +392,7 @@ class TestUpdateCar:
         update_data = {
             'model': 'Updated Model',
             'color': 'Updated Color',
-            'price': Decimal('200000.00')
+            'price': 200000.00
         }
 
         response = client.put(f'/api/cars/{car.id}', json=update_data, headers=auth_headers)
@@ -402,7 +402,7 @@ class TestUpdateCar:
 
         assert data['model'] == 'Updated Model'
         assert data['color'] == 'Updated Color'
-        assert Decimal(data['price']) == Decimal('200000.00')
+        assert float(data['price']) == 200000.00
 
     def test_update_car_without_auth(self, client: TestClient, car: Car):
         """Test updating a car without authentication fails."""
@@ -439,7 +439,7 @@ class TestUpdateCar:
     def test_update_car_zero_price(self, client: TestClient, auth_headers: dict, car: Car):
         """Test updating a car with zero price fails."""
         update_data = {
-            'price': Decimal('0.00')
+            'price': 0.00
         }
 
         response = client.put(f'/api/cars/{car.id}', json=update_data, headers=auth_headers)
@@ -577,7 +577,7 @@ class TestCarSchemaValidation:
                 'plate': f'FUEL{fuel_type.value[:3].upper()}1',
                 'fuel_type': fuel_type.value,
                 'transmission': TransmissionType.MANUAL.value,
-                'price': Decimal('50000.00'),
+                'price': 50000.00,
                 'brand_id': brand.id,
                 'owner_id': user.id
             }
@@ -597,7 +597,7 @@ class TestCarSchemaValidation:
                 'plate': f'TRANS{transmission.value[:3].upper()}1',
                 'fuel_type': FuelType.GASOLINE.value,
                 'transmission': transmission.value,
-                'price': Decimal('50000.00'),
+                'price': 50000.00,
                 'brand_id': brand.id,
                 'owner_id': user.id
             }
@@ -616,7 +616,7 @@ class TestCarSchemaValidation:
             'plate': 'abc1234',  # Lowercase
             'fuel_type': FuelType.GASOLINE.value,
             'transmission': TransmissionType.MANUAL.value,
-            'price': Decimal('50000.00'),
+            'price': 50000.00,
             'brand_id': brand.id,
             'owner_id': user.id
         }
@@ -637,7 +637,7 @@ class TestCarSchemaValidation:
             'plate': 'ABC1D23',  # Mercosul format
             'fuel_type': FuelType.FLEX.value,
             'transmission': TransmissionType.AUTOMATIC.value,
-            'price': Decimal('75000.00'),
+            'price': 75000.00,
             'brand_id': brand.id,
             'owner_id': user.id
         }
@@ -656,7 +656,7 @@ class TestCarSchemaValidation:
             'plate': 'LONGDESC1',
             'fuel_type': FuelType.GASOLINE.value,
             'transmission': TransmissionType.MANUAL.value,
-            'price': Decimal('50000.00'),
+            'price': 50000.00,
             'description': 'A' * 1000,  # 1000 characters
             'brand_id': brand.id,
             'owner_id': user.id

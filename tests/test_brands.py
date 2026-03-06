@@ -359,6 +359,7 @@ class TestUpdateBrand:
     def test_update_brand_activate(self, client: TestClient, auth_headers: dict, inactive_brand: Brand):
         """Test activating an inactive brand."""
         update_data = {
+            'name': 'Updated Inactive Brand',
             'is_active': True
         }
 
@@ -371,6 +372,7 @@ class TestUpdateBrand:
     def test_update_brand_deactivate(self, client: TestClient, auth_headers: dict, brand: Brand):
         """Test deactivating an active brand."""
         update_data = {
+            'name': 'Deactivated Brand',
             'is_active': False
         }
 

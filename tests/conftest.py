@@ -1,8 +1,20 @@
+import os
 import pytest
 import pytest_asyncio
 from decimal import Decimal
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+
+# Set environment variables BEFORE importing any application code
+os.environ['DB_HOST'] = 'localhost'
+os.environ['DB_USER'] = 'test'
+os.environ['DB_PASSWORD'] = 'test'
+os.environ['DB_PORT'] = '5432'
+os.environ['DB_NAME'] = 'test_db'
+os.environ['DATABASE_URL'] = 'sqlite+aiosqlite:///./test.db'
+os.environ['JWT_SECRET_KEY'] = 'testsecretkey123456789'
+os.environ['JWT_ALGORITHM'] = 'HS256'
+os.environ['JWT_EXPIRATION_MINUTES'] = '30'
 
 from car_api.app import app
 from car_api.core.database import get_session
@@ -202,7 +214,7 @@ async def car_data(brand: Brand, user: User) -> dict:
         'plate': 'ABC1234',
         'fuel_type': FuelType.FLEX.value,
         'transmission': TransmissionType.AUTOMATIC.value,
-        'price': Decimal('150000.00'),
+        'price': 150000.00,
         'description': 'Well maintained sedan',
         'is_available': True,
         'brand_id': brand.id,
@@ -248,7 +260,7 @@ async def second_car_data(brand: Brand, user: User) -> dict:
         'plate': 'XYZ5678',
         'fuel_type': FuelType.HYBRID.value,
         'transmission': TransmissionType.CVT.value,
-        'price': Decimal('180000.00'),
+        'price': 180000.00,
         'description': 'Hybrid sedan',
         'is_available': True,
         'brand_id': brand.id,

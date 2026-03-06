@@ -379,24 +379,24 @@ class TestDeleteUser:
 class TestUserSchemaValidation:
     """Tests for user schema validation."""
 
-    def test_user_schema_email_format(self, client: TestClient):
+    def test_user_schema_email_format(self, client: TestClient, auth_headers: dict):
         """Test user creation with various email formats."""
         valid_emails = [
-            'test@example.com',
+            'test1@example.com',
             'user.name@domain.org',
             'user+tag@example.co.uk'
         ]
 
         for email in valid_emails:
             user_data = {
-                'username': 'testuser',
+                'username': f'testuser_{email.replace("@", "_").replace(".", "_")}',
                 'email': email,
                 'password': 'password123'
             }
 
-            response = client.post('/api/users/', json=user_data)
+            response = client.post('/api/users/', json=user_data, headers=auth_headers)
 
-            assert response.status_code == HTTPStatus.CREATED
+            assert response.status_code == HTTPStatus.CREATED, f"Failed for email: {email}"
 
     def test_user_schema_special_characters_username(self, client: TestClient):
         """Test user creation with special characters in username."""

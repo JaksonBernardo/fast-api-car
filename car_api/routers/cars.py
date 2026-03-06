@@ -98,11 +98,11 @@ async def delete_car(
     db: AsyncSession = Depends(get_session),
 ) -> None:
 
-    await CarServices.delete_car(db, car_id)
+    await CarServices.delete_car(db, car_id, current_user, verify_car_ownership)
 
 
 @car_routers.put(
-    path="{car_id}",
+    path="/{car_id}",
     status_code=status.HTTP_200_OK,
     response_model=CarPublicSchema,
     summary="Atualizando um registro de carro",

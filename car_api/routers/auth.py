@@ -14,7 +14,7 @@ auth_routers = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 
 @auth_routers.post(
-    path="/api/token",
+    path="/token",
     response_model=Token,
     status_code=status.HTTP_200_OK,
     summary="Gerar token de acesso",

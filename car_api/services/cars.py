@@ -1,7 +1,6 @@
 from typing import Callable, Dict, List, Union
 
 from fastapi import HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from car_api.models import Car, FuelType, TransmissionType, User
 from car_api.repositories.brands import BrandRepository
@@ -11,11 +10,19 @@ from car_api.schemas.cars import CarPublicSchema, CarSchema
 
 
 class CarServices:
-    @staticmethod
-    async def create_car(db: AsyncSession, car_data: CarSchema) -> CarPublicSchema:
+    def __init__(
+        self,
+        car_repository: CarRepository,
+        brand_repository: BrandRepository,
+        user_repository: UserRepository,
+    ):
+        self.car_repository = car_repository
+        self.brand_repository = brand_repository
+        self.user_repository = user_repository
 
-        brand_exists = await BrandRepository.verify_if_exists_brand_id(
-            db, car_data.brand_id
+    async def create_car(self, car_data: CarSchema) -> CarPublicSchema:
+        brand_exists = await self.brand_repository.verify_if_exists_brand_id(
+            car_data.brand_id
         )
 
         if not brand_exists:
@@ -24,7 +31,9 @@ class CarServices:
                 detail="Marca de carro não encontrada",
             )
 
-        owner_exists = await UserRepository.verify_if_exists_id(db, car_data.owner_id)
+        owner_exists = await self.user_repository.verify_if_exists_id(
+            car_data.owner_id
+        )
 
         if not owner_exists:
             raise HTTPException(
@@ -32,7 +41,7 @@ class CarServices:
                 detail="Proprietário não encontrado",
             )
 
-        plate_exists = await CarRepository.verify_if_plate_exists(db, car_data.plate)
+        plate_exists = await self.car_repository.verify_if_plate_exists(car_data.plate)
 
         if plate_exists:
             raise HTTPException(
@@ -55,26 +64,24 @@ class CarServices:
             owner_id=car_data.owner_id,
         )
 
-        new_car = await CarRepository.save(db, new_car)
+        new_car = await self.car_repository.save(new_car)
 
-        brand_infos = await BrandRepository.get_brand_by_id(db, car_data.brand_id)
+        brand_infos = await self.brand_repository.get_brand_by_id(car_data.brand_id)
 
-        owner_infos = await UserRepository.get_user_by_id(db, car_data.owner_id)
+        owner_infos = await self.user_repository.get_user_by_id(car_data.owner_id)
 
         new_car.brand = brand_infos
         new_car.owner = owner_infos
 
         return new_car
 
-    @staticmethod
     async def delete_car(
-        db: AsyncSession,
+        self,
         car_id: int,
         current_user: User,
         verify_car_ownership: Callable,
     ) -> None:
-
-        car = await CarRepository.get_car_by_id(db, car_id)
+        car = await self.car_repository.get_car_by_id(car_id)
 
         if not car:
             raise HTTPException(
@@ -83,28 +90,26 @@ class CarServices:
 
         verify_car_ownership(current_user, car.owner_id)
 
-        await CarRepository.delete_car(db, car_id)
+        await self.car_repository.delete_car(car_id)
 
-    @staticmethod
     async def get_car_by_id(
-        db: AsyncSession,
+        self,
         car_id: int,
         current_user: User,
         verify_car_ownership: Callable,
     ) -> CarPublicSchema:
-
-        car_exists = await CarRepository.verify_if_exists_by_id(db, car_id)
+        car_exists = await self.car_repository.verify_if_exists_by_id(car_id)
 
         if not car_exists:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Carro não encontrado"
             )
 
-        car = await CarRepository.get_car_by_id(db, car_id)
+        car = await self.car_repository.get_car_by_id(car_id)
 
-        brand_infos = await BrandRepository.get_brand_by_id(db, car.brand_id)
+        brand_infos = await self.brand_repository.get_brand_by_id(car.brand_id)
 
-        owner_infos = await UserRepository.get_user_by_id(db, car.owner_id)
+        owner_infos = await self.user_repository.get_user_by_id(car.owner_id)
 
         car.brand = brand_infos
         car.owner = owner_infos
@@ -113,9 +118,8 @@ class CarServices:
 
         return car
 
-    @staticmethod
     async def get_cars(
-        db: AsyncSession,
+        self,
         offset: int,
         limit: int,
         search: Union[str, None],
@@ -124,39 +128,36 @@ class CarServices:
         fuel_type: Union[FuelType, None],
         transmission: Union[TransmissionType, None],
     ) -> List[CarPublicSchema]:
-
         if search:
             search = f"%{search}%"
 
-        cars = await CarRepository.get_cars(
-            db, offset, limit, search, brand_id, owner_id, fuel_type, transmission
+        cars = await self.car_repository.get_cars(
+            offset, limit, search, brand_id, owner_id, fuel_type, transmission
         )
 
         return cars
 
-    @staticmethod
     async def update_car(
-        db: AsyncSession,
+        self,
         car_data: Dict,
         car_id: int,
         current_user: User,
         verify_car_ownership: Callable,
     ) -> CarPublicSchema:
-
-        car_exists = await CarRepository.verify_if_exists_by_id(db, car_id)
+        car_exists = await self.car_repository.verify_if_exists_by_id(car_id)
 
         if not car_exists:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Carro não encontrado"
             )
 
-        car = await CarRepository.get_car_by_id(db, car_id)
+        car = await self.car_repository.get_car_by_id(car_id)
 
         verify_car_ownership(current_user, car.owner_id)
 
         if "plate" in car_data and car_data["plate"] != car.plate:
-            plate_exists = await CarRepository.verify_if_plate_exists(
-                db, car_data["plate"]
+            plate_exists = await self.car_repository.verify_if_plate_exists(
+                car_data["plate"]
             )
 
             if plate_exists:
@@ -178,8 +179,8 @@ class CarServices:
             )
 
         if "brand_id" in car_data:
-            brand_exists = await BrandRepository.verify_if_exists_brand_id(
-                db, car_data["brand_id"]
+            brand_exists = await self.brand_repository.verify_if_exists_brand_id(
+                car_data["brand_id"]
             )
 
             if not brand_exists:
@@ -189,8 +190,8 @@ class CarServices:
                 )
 
         if "owner_id" in car_data:
-            owner_exists = await UserRepository.verify_if_exists_id(
-                db, car_data["owner_id"]
+            owner_exists = await self.user_repository.verify_if_exists_id(
+                car_data["owner_id"]
             )
 
             if not owner_exists:
@@ -202,6 +203,6 @@ class CarServices:
         for field, value in car_data.items():
             setattr(car, field, value)
 
-        new_car = await CarRepository.update_car(db, car)
+        new_car = await self.car_repository.update_car(car)
 
         return new_car

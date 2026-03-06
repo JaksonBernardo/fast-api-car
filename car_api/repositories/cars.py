@@ -9,18 +9,18 @@ from car_api.schemas.cars import CarPublicSchema
 
 
 class CarRepository:
-    @staticmethod
-    async def save(db: AsyncSession, new_car: Car) -> Car:
+    def __init__(self, db: AsyncSession):
+        self.db = db
 
-        db.add(new_car)
-        await db.commit()
-        await db.refresh(new_car)
+    async def save(self, new_car: Car) -> Car:
+        self.db.add(new_car)
+        await self.db.commit()
+        await self.db.refresh(new_car)
 
         return new_car
 
-    @staticmethod
     async def get_cars(
-        db: AsyncSession,
+        self,
         offset: int,
         limit: int,
         search: Union[str, None],
@@ -29,11 +29,14 @@ class CarRepository:
         fuel_type: Union[FuelType, None],
         transmission: Union[TransmissionType, None],
     ) -> List[CarPublicSchema]:
-
-        query = select(Car).options(selectinload(Car.brand), selectinload(Car.owner))
+        query = select(Car).options(
+            selectinload(Car.brand), selectinload(Car.owner)
+        )
 
         if search:
-            query = query.where(or_(Car.model.ilike(search), Car.plate.ilike(search)))
+            query = query.where(
+                or_(Car.model.ilike(search), Car.plate.ilike(search))
+            )
 
         if brand_id:
             query = query.where(Car.brand_id == brand_id)
@@ -49,45 +52,37 @@ class CarRepository:
 
         query = query.offset(offset).limit(limit)
 
-        cars = await db.execute(query)
+        cars = await self.db.execute(query)
 
         return cars.scalars().all()
 
-    @staticmethod
-    async def verify_if_plate_exists(db: AsyncSession, plate: str) -> bool:
-
-        plate_exists = await db.scalar(select(exists().where(Car.plate == plate)))
+    async def verify_if_plate_exists(self, plate: str) -> bool:
+        plate_exists = await self.db.scalar(
+            select(exists().where(Car.plate == plate))
+        )
 
         return plate_exists
 
-    @staticmethod
-    async def verify_if_exists_by_id(db: AsyncSession, car_id: int) -> bool:
-
-        car_exists = await db.scalar(select(exists().where(Car.id == car_id)))
+    async def verify_if_exists_by_id(self, car_id: int) -> bool:
+        car_exists = await self.db.scalar(select(exists().where(Car.id == car_id)))
 
         return car_exists
 
-    @staticmethod
-    async def delete_car(db: AsyncSession, car_id: int) -> None:
+    async def delete_car(self, car_id: int) -> None:
+        await self.db.execute(delete(Car).where(Car.id == car_id))
 
-        await db.execute(delete(Car).where(Car.id == car_id))
+        await self.db.commit()
 
-        await db.commit()
-
-    @staticmethod
-    async def get_car_by_id(db: AsyncSession, car_id: int) -> Car:
-
-        car = await db.scalar(select(Car).where(Car.id == car_id))
+    async def get_car_by_id(self, car_id: int) -> Car:
+        car = await self.db.scalar(select(Car).where(Car.id == car_id))
 
         return car
 
-    @staticmethod
-    async def update_car(db: AsyncSession, car: Car) -> Car:
+    async def update_car(self, car: Car) -> Car:
+        await self.db.commit()
+        await self.db.refresh(car)
 
-        await db.commit()
-        await db.refresh(car)
-
-        car = await db.scalar(
+        car = await self.db.scalar(
             select(Car)
             .options(selectinload(Car.brand), selectinload(Car.owner))
             .where(Car.id == car.id)

@@ -6,6 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from car_api.core.database import get_session
 from car_api.core.security import get_current_user, verify_car_ownership
 from car_api.models import FuelType, TransmissionType, User
+from car_api.repositories.brands import BrandRepository
+from car_api.repositories.cars import CarRepository
+from car_api.repositories.users import UserRepository
 from car_api.schemas.cars import (
     CarListPublicSchema,
     CarPublicSchema,
@@ -17,6 +20,26 @@ from car_api.services.cars import CarServices
 car_routers = APIRouter(prefix="/api/cars", tags=["Cars"])
 
 
+def get_car_repository(db: AsyncSession = Depends(get_session)) -> CarRepository:
+    return CarRepository(db)
+
+
+def get_brand_repository(db: AsyncSession = Depends(get_session)) -> BrandRepository:
+    return BrandRepository(db)
+
+
+def get_user_repository(db: AsyncSession = Depends(get_session)) -> UserRepository:
+    return UserRepository(db)
+
+
+def get_car_service(
+    car_repository: CarRepository = Depends(get_car_repository),
+    brand_repository: BrandRepository = Depends(get_brand_repository),
+    user_repository: UserRepository = Depends(get_user_repository),
+) -> CarServices:
+    return CarServices(car_repository, brand_repository, user_repository)
+
+
 @car_routers.post(
     path="/",
     status_code=status.HTTP_201_CREATED,
@@ -26,10 +49,9 @@ car_routers = APIRouter(prefix="/api/cars", tags=["Cars"])
 async def create_cars(
     car_data: CarSchema,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
+    car_service: CarServices = Depends(get_car_service),
 ) -> CarPublicSchema:
-
-    new_car = await CarServices.create_car(db, car_data)
+    new_car = await car_service.create_car(car_data)
 
     return new_car
 
@@ -58,11 +80,10 @@ async def get_cars(
     transmission: Optional[TransmissionType] = Query(
         None, description="Buscar por um tipo de transmissão"
     ),
-    db: AsyncSession = Depends(get_session),
+    car_service: CarServices = Depends(get_car_service),
 ) -> CarListPublicSchema:
-
-    cars = await CarServices.get_cars(
-        db, offset, limit, search, brand_id, owner_id, fuel_type, transmission
+    cars = await car_service.get_cars(
+        offset, limit, search, brand_id, owner_id, fuel_type, transmission
     )
 
     return {"cars": cars, "offset": offset, "limit": limit}
@@ -77,11 +98,10 @@ async def get_cars(
 async def get_car_by_id(
     car_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
+    car_service: CarServices = Depends(get_car_service),
 ) -> CarPublicSchema:
-
-    car = await CarServices.get_car_by_id(
-        db, car_id, current_user, verify_car_ownership
+    car = await car_service.get_car_by_id(
+        car_id, current_user, verify_car_ownership
     )
 
     return car
@@ -95,10 +115,9 @@ async def get_car_by_id(
 async def delete_car(
     car_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
+    car_service: CarServices = Depends(get_car_service),
 ) -> None:
-
-    await CarServices.delete_car(db, car_id, current_user, verify_car_ownership)
+    await car_service.delete_car(car_id, current_user, verify_car_ownership)
 
 
 @car_routers.put(
@@ -111,13 +130,12 @@ async def update_car(
     car_id: int,
     car_data: CarUpdateSchema,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
+    car_service: CarServices = Depends(get_car_service),
 ) -> CarPublicSchema:
-
     car_data = car_data.model_dump(exclude_unset=True)
 
-    car = await CarServices.update_car(
-        db, car_data, car_id, current_user, verify_car_ownership
+    car = await car_service.update_car(
+        car_data, car_id, current_user, verify_car_ownership
     )
 
     return car

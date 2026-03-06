@@ -8,25 +8,24 @@ from car_api.schemas.brands import BrandListPublicSchema, BrandPublicSchema
 
 
 class BrandRepository:
-    @staticmethod
-    async def save(db: AsyncSession, new_brand: Brand) -> BrandPublicSchema:
+    def __init__(self, db: AsyncSession):
+        self.db = db
 
-        db.add(new_brand)
+    async def save(self, new_brand: Brand) -> BrandPublicSchema:
+        self.db.add(new_brand)
 
-        await db.commit()
-        await db.refresh(new_brand)
+        await self.db.commit()
+        await self.db.refresh(new_brand)
 
         return new_brand
 
-    @staticmethod
     async def get_brands(
-        db: AsyncSession,
+        self,
         offset: int,
         limit: int,
         search: Union[str, None],
         is_active: bool,
     ) -> BrandListPublicSchema:
-
         query = select(Brand)
 
         if search:
@@ -39,51 +38,37 @@ class BrandRepository:
 
         query = query.offset(offset).limit(limit)
 
-        brands = await db.execute(query)
+        brands = await self.db.execute(query)
 
         return brands.scalars().all()
 
-    @staticmethod
-    async def verify_if_exists_car_by_brand_id(db: AsyncSession, brand_id: int) -> bool:
-
-        cars = await db.scalars(select(Car).where(Car.brand_id == brand_id))
+    async def verify_if_exists_car_by_brand_id(self, brand_id: int) -> bool:
+        cars = await self.db.scalars(select(Car).where(Car.brand_id == brand_id))
 
         return len(cars.all()) > 0
 
-    @staticmethod
-    async def verify_if_exists_brand_name(db: AsyncSession, brand_name: str) -> bool:
-
-        brand = await db.scalar(select(exists().where(Brand.name == brand_name)))
+    async def verify_if_exists_brand_name(self, brand_name: str) -> bool:
+        brand = await self.db.scalar(select(exists().where(Brand.name == brand_name)))
 
         return brand
 
-    @staticmethod
-    async def verify_if_exists_brand_id(db: AsyncSession, brand_id: int) -> bool:
-
-        brand = await db.scalar(select(exists().where(Brand.id == brand_id)))
+    async def verify_if_exists_brand_id(self, brand_id: int) -> bool:
+        brand = await self.db.scalar(select(exists().where(Brand.id == brand_id)))
 
         return brand
 
-    @staticmethod
-    async def delete_by_id(db: AsyncSession, brand_id: int) -> None:
+    async def delete_by_id(self, brand_id: int) -> None:
+        await self.db.execute(delete(Brand).where(Brand.id == brand_id))
 
-        await db.execute(delete(Brand).where(Brand.id == brand_id))
+        await self.db.commit()
 
-        await db.commit()
-
-    @staticmethod
-    async def get_brand_by_id(db: AsyncSession, brand_id: int) -> BrandPublicSchema:
-
-        brand = await db.scalar(select(Brand).where(Brand.id == brand_id))
+    async def get_brand_by_id(self, brand_id: int) -> BrandPublicSchema:
+        brand = await self.db.scalar(select(Brand).where(Brand.id == brand_id))
 
         return brand
 
-    @staticmethod
-    async def update_brand(
-        db: AsyncSession, brand: BrandPublicSchema
-    ) -> BrandPublicSchema:
-
-        await db.commit()
-        await db.refresh(brand)
+    async def update_brand(self, brand: BrandPublicSchema) -> BrandPublicSchema:
+        await self.db.commit()
+        await self.db.refresh(brand)
 
         return brand

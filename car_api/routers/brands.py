@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from car_api.core.database import get_session
 from car_api.core.security import get_current_user
 from car_api.models import User
+from car_api.repositories.brands import BrandRepository
 from car_api.schemas.brands import (
     BrandListPublicSchema,
     BrandPublicSchema,
@@ -17,6 +18,16 @@ from car_api.services.brands import BrandService
 brands_routers = APIRouter(prefix="/api/brands", tags=["Brands"])
 
 
+def get_brand_repository(db: AsyncSession = Depends(get_session)) -> BrandRepository:
+    return BrandRepository(db)
+
+
+def get_brand_service(
+    brand_repository: BrandRepository = Depends(get_brand_repository),
+) -> BrandService:
+    return BrandService(brand_repository)
+
+
 @brands_routers.post(
     path="/",
     status_code=status.HTTP_201_CREATED,
@@ -26,10 +37,9 @@ brands_routers = APIRouter(prefix="/api/brands", tags=["Brands"])
 async def create_brand(
     brand: BrandSchema,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
+    brand_service: BrandService = Depends(get_brand_service),
 ) -> BrandPublicSchema:
-
-    new_brand = await BrandService.create_brand(db, brand)
+    new_brand = await brand_service.create_brand(brand)
 
     return new_brand
 
@@ -48,10 +58,9 @@ async def get_brands(
     search: Optional[str] = Query(None, description="Buscar por nome ou descrição"),
     is_active: Optional[bool] = Query(None, description="Filtrar por marcas ativas"),
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
+    brand_service: BrandService = Depends(get_brand_service),
 ) -> BrandListPublicSchema:
-
-    brands = await BrandService.get_brands(db, offset, limit, search, is_active)
+    brands = await brand_service.get_brands(offset, limit, search, is_active)
 
     return {"brands": brands, "offset": offset, "limit": limit}
 
@@ -65,10 +74,9 @@ async def get_brands(
 async def get_brand_by_id(
     brand_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
+    brand_service: BrandService = Depends(get_brand_service),
 ) -> BrandPublicSchema:
-
-    brand = await BrandService.get_brand_by_id(db, brand_id)
+    brand = await brand_service.get_brand_by_id(brand_id)
 
     return brand
 
@@ -81,10 +89,9 @@ async def get_brand_by_id(
 async def delete_brand(
     brand_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
+    brand_service: BrandService = Depends(get_brand_service),
 ) -> None:
-
-    await BrandService.delete_brand(db, brand_id)
+    await brand_service.delete_brand(brand_id)
 
 
 @brands_routers.put(
@@ -97,11 +104,10 @@ async def update_brand(
     brand_id: int,
     brand_data: BrandUpdateSchema,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_session),
+    brand_service: BrandService = Depends(get_brand_service),
 ) -> BrandPublicSchema:
-
     updated_data = brand_data.model_dump(exclude_unset=True)
 
-    new_brand = await BrandService.update_brand(db, updated_data, brand_id)
+    new_brand = await brand_service.update_brand(updated_data, brand_id)
 
     return new_brand

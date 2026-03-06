@@ -14,13 +14,14 @@ from car_api.schemas.users import (
 
 
 class UserService:
-    @staticmethod
-    async def create_user(db: AsyncSession, user: UserSchema) -> UserPublicSchema:
+    def __init__(self, user_repository: UserRepository):
+        self.user_repository = user_repository
 
-        username_exists = await UserRepository.verify_if_exists_username(
-            db, user.username
+    async def create_user(self, user: UserSchema) -> UserPublicSchema:
+        username_exists = await self.user_repository.verify_if_exists_username(
+            user.username
         )
-        emails_exists = await UserRepository.verify_if_exists_email(db, user.email)
+        emails_exists = await self.user_repository.verify_if_exists_email(user.email)
 
         if username_exists or emails_exists:
             raise HTTPException(
@@ -34,17 +35,15 @@ class UserService:
             username=user.username, email=user.email, password=hashed_password
         )
 
-        return await UserRepository.save(db, new_user)
+        return await self.user_repository.save(new_user)
 
-    @staticmethod
     async def delete_user(
-        db: AsyncSession,
+        self,
         user_id: int,
         current_user: User,
         verify_user_permission: Callable,
     ) -> None:
-
-        user_exists = await UserRepository.verify_if_exists_id(db, user_id)
+        user_exists = await self.user_repository.verify_if_exists_id(user_id)
 
         if not user_exists:
             raise HTTPException(
@@ -53,55 +52,49 @@ class UserService:
 
         verify_user_permission(current_user, user_id)
 
-        await UserRepository.delete_by_id(db, user_id)
+        await self.user_repository.delete_by_id(user_id)
 
-    @staticmethod
-    async def get_user_by_id(db: AsyncSession, user_id: int) -> UserPublicSchema | None:
-
-        user_exists = await UserRepository.verify_if_exists_id(db, user_id)
+    async def get_user_by_id(self, user_id: int) -> UserPublicSchema | None:
+        user_exists = await self.user_repository.verify_if_exists_id(user_id)
 
         if not user_exists:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado"
             )
 
-        return await UserRepository.get_user_by_id(db, user_id)
+        return await self.user_repository.get_user_by_id(user_id)
 
-    @staticmethod
     async def list_users(
-        db: AsyncSession, offset: int, limit: int, search: Union[str, None]
+        self, offset: int, limit: int, search: Union[str, None]
     ) -> UserListPublicSchema:
-
         if search:
             search = f"%{search}%"
 
-        users = await UserRepository.get_users(db, offset, limit, search)
+        users = await self.user_repository.get_users(offset, limit, search)
 
         return users
 
-    @staticmethod
     async def update_user(
-        db: AsyncSession,
+        self,
         user_data: Dict,
         user_id: int,
         current_user: User,
         verify_user_permission: Callable,
     ) -> UserPublicSchema:
-
-        user_exists = await UserRepository.verify_if_exists_id(db, user_id)
+        user_exists = await self.user_repository.verify_if_exists_id(user_id)
 
         if not user_exists:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado"
             )
 
-        user = await UserRepository.get_user_by_id(db, user_id)
+        user = await self.user_repository.get_user_by_id(user_id)
 
         verify_user_permission(current_user, user_id)
 
         if "email" in user_data and user_data["email"] != user.email:
-            email_exists = await UserRepository.verify_if_exists_email(
-                db, user_data["email"]
+            email_exists = await self.user_repository.verify_if_exists_email(
+                user_data["email"]
             )
 
             if email_exists:
@@ -115,6 +108,6 @@ class UserService:
         for field, value in user_data.items():
             setattr(user, field, value)
 
-        new_user = await UserRepository.update_user(db, user)
+        new_user = await self.user_repository.update_user(user)
 
         return new_user

@@ -9,12 +9,12 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DB_HOST=car_api_db
+      - DB_HOST=mysql_db
       - DB_USER=root
       - DB_PASSWORD=root123
       - DB_PORT=3306
-      - DB_NAME=car_api
-      - DATABASE_URL=mysql+aiomysql://root:root123@car_api_db:3306/car_api
+      - DB_NAME=mysql_db
+      - DATABASE_URL=mysql+aiomysql://root:root123@mysql_db:3306/car_api
       - JWT_SECRET_KEY=your-secret-key-change-in-production
       - JWT_ALGORITHM=HS256
       - JWT_EXPIRATION_MINUTES=30

@@ -105,8 +105,21 @@ car_api/
 ### Pré-requisitos
 ```bash
 Python 3.12+
-pip ou uv
 ```
+
+
+### Configuração
+
+Crie um arquivo `.env` na raiz do projeto (baseado em `.env.example`):
+
+```env
+SECRET_KEY=sua_chave_secreta_aqui
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+DATABASE_URL=sqlite+aiosqlite:///./db.sqlite
+```
+
+> ⚠️ **Importante:** A `SECRET_KEY` deve ser uma string aleatória e segura em ambiente de produção.
 
 ### Instalação
 ```bash

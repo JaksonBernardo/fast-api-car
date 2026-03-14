@@ -1,0 +1,74 @@
+🚀 Nova API no ar! Acabo de finalizar minha **Car API** - uma API RESTful completa para gerenciamento de veículos! 🚗
+
+🔥 **Destaques do Projeto:**
+
+🐳 **Docker & Docker Compose**
+- Multi-container com API + MySQL 8.0
+- Health checks para todos os serviços
+- Volumes persistentes e redes isoladas
+- Pronto para produção com configurações via .env
+
+🔐 **Autenticação JWT**
+- JWT tokens com expiração configurável
+- Hash de senhas com **Argon2** (melhor prática de segurança)
+- Proteção de rotas e verificação de propriedade
+- Segurança nível production
+
+🏗️ **Arquitetura em Camadas**
+- Routers → Services → Repositories → Models
+- Separação clara de responsabilidades
+- Injeção de dependências do FastAPI
+- Código escalável e de fácil manutenção
+
+🧪 **Testes Automatizados**
+- Suite completa com pytest + pytest-asyncio
+- Coverage de código com relatórios HTML
+- Testes de autenticação, CRUD e regras de negócio
+
+📊 **Stack Tecnológico:**
+- FastAPI 0.128.0
+- Python 3.12+
+- SQLAlchemy 2.0 (async)
+- Alembic para migrations
+- Pydantic v2 para validação
+- Ruff para linting/formatting
+- MkDocs para documentação
+
+🔌 **Funcionalidades:**
+✅ CRUD completo de veículos, marcas e usuários
+✅ Filtros avançados (marca, combustível, transmissão)
+✅ Autenticação e autorização
+✅ Documentação OpenAPI automática
+✅ Migrations versionadas
+
+📁 **Estrutura do Projeto:**
+- /core → Configurações, database, segurança
+- /models → Modelos SQLAlchemy
+- /repositories → Camada de dados
+- /routers → Endpoints da API
+- /schemas → Validação Pydantic
+- /services → Regras de negócio
+
+🎯 **Comandos com Taskipy:**
+- task run → Inicia servidor
+- task test_run → Testes com coverage
+- task lint/format → Qualidade de código
+- task docs → Documentação
+
+📖 **Documentação:**
+Swagger UI automático disponível em /docs
+
+💡 **O que esse projeto demonstra:**
+✓ Domínio de FastAPI e Python moderno
+✓ Arquitetura escalável e boas práticas
+✓ Cultura de testes automatizados
+✓ Segurança com JWT e Argon2
+✓ DevOps básico com Docker
+✓ Qualidade de código com type hints e linting
+
+🔗 **Tecnologias:** FastAPI | Python | Docker | MySQL | JWT | SQLAlchemy | Pytest | Argon2
+
+#FastAPI #Python #Docker #API #REST #Backend #JWT #Auth #MySQL #SQLAlchemy #Pytest #DevOps #CleanArchitecture #WebDevelopment #Programming #SoftwareEngineering #Coding #Tech
+
+---
+👨‍💻 Projeto desenvolvido para fins educacionais e portfólio técnico.
